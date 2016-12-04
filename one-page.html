@@ -1,67 +1,37 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../app-route/app-location.html">
 <link rel="import" href="../app-route/app-route.html">
+<link rel="import" href="../neon-animation/neon-animatable-behavior.html">
+<link rel="import" href="../neon-animation/neon-animation.html">
 
 <dom-module id="one-page">
     <template>
-        <style>
-            /*:host {*/
-            /*display: block;*/
-            /*--app-primary-color: #4285f4;*/
-            /*--app-secondary-color: black;*/
-            /*}*/
-            :host ::content {
-                display: var(--one-display, 'none');
-            }
-        </style>
-
         <app-location route="{{route}}"></app-location>
-        <!--<app-route-->
-                <!--route="{{route}}"-->
-                <!--pattern="{{pattern}}"-->
-                <!--data="{{routeData}}"-->
-                <!--tail="{{subroute}}">-->
-        <!--</app-route>-->
-        <content hidden$="{{hide}}"></content>
+        <div>
+            <slot></slot>
+        </div>
     </template>
 
     <script>
 
         Polymer({
-
             is: 'one-page',
-
+            behaviors: [
+                Polymer.NeonAnimationRunnerBehavior
+            ],
             properties: {
-                page: {
-                    type: String,
-                    reflectToAttribute: true,
-                    observer: '_pageChanged'
-                },
                 //The url of the file for lazy loading
                 fileUrl: {
                     type: String
                 },
-                visible: {
-                    type: Number
-                },
                 //Url for the element to be active
-                url: {
-                    type: String
-                },
-                name: {
+                activeUrl: {
                     type: String
                 },
                 //TODO: Handle patterns for complex routing
                 pattern: {
                     type: String,
                     readOnly: true
-                },
-                //Hide when url doesn't match element url
-                hide: {
-                    type: Boolean,
-                    value: true,
-                    reflectToAttribute: true,
-                    notify: true
                 },
                 //Default page when url is '/'
                 default: {
@@ -71,44 +41,68 @@
                 //Level of indentation of url: E.g: /home === 1. /home/cars === 2. /home/cars/ferrari === 3...
                 index: {
                     type: Number
+                },
+                //Whether the page is currently opened
+                opened: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true,
+                    notify: true,
+                    observer: '_openedChanged'
+                },
+                entryAnimation: {
+                    value: 'scale-up-animation'
+                },
+                exitAnimation: {
+//                    value: 'fade-out-animation'
                 }
-
-            },
-            ready: function () {
             },
 
             observers: [
                 '_routePageChanged(route.path)'
             ],
+            listeners: {
+                'neon-animation-finish': '_onNeonAnimationFinish'
+            },
+            _onNeonAnimationFinish: function() {
+                if (!this.opened) {
+                    this.style.display = 'none';
+                }
+            },
+            _openedChanged: function () {
+                if(this.opened) {
+                    this.style.display = 'block';
+                    this.playAnimation('entry');
+                }
+                else {
+                    this.playAnimation('exit');
+                }
+            },
 
+            //Executed when the url changes
             _routePageChanged: function(path) {
+                if(!this.activeUrl) return;
+
                 //When page is default
-                if((!path || path === '/') && this.url && this.url !== '/' && this.default) {
-                    console.log('here')
-                    this.set('route.path', this.url);
+                if((!path || path === '/') && this.activeUrl && this.activeUrl !== '/' && this.default) {
+                    this.set('route.path', this.activeUrl);
                     return;
                 }
 
                 //Extract path depending on index
                 if(this.index) path = path.split('/')[this.index];
-                console.log('path: ' + path + ', url: ' + this.url)
 
-                //Display when url matches path
-                if(path === this.url) {
-                    if(this.fileUrl) this.importHref(this.resolveUrl(this.fileUrl), null, null, true);
-                    this.hide = false;
-                    this.customStyle['--one-display'] = 'block';
-                    Polymer.updateStyles();
+                //Display when activeUrl matches path
+                if(path === this.activeUrl) {
+                    if(this.fileUrl) this.importHref(this.resolveUrl('../../src/' + this.fileUrl), null, null, true);
+                    this.opened = true;
                 }
 
-                //Hide when url doesn't match path
-                else if(this.url) {
-                    this.hide = true;
-                    this.customStyle['--one-display'] = 'none';
-                    Polymer.updateStyles();
+                //Hide when activeUrl doesn't match path
+                else if(this.activeUrl) {
+                    this.opened = false;
                 }
             }
-
         });
 
     </script>

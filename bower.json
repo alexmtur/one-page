@@ -13,5 +13,12 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+      "polymer": "Polymer/polymer#latest",
+      "app-route": "polymerelements/app-route#latest",
+      "neon-animation": "PolymerElements/neon-animation#latest"
+  },
+  "devDependencies": {
+  }
 }
