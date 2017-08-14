@@ -15,10 +15,9 @@
     "tests"
   ],
   "dependencies": {
-      "polymer": "Polymer/polymer#latest",
-      "app-route": "polymerelements/app-route#latest",
-      "neon-animation": "PolymerElements/neon-animation#latest"
+    "polymer": "Polymer/polymer#latest",
+    "app-route": "PolymerElements/app-route#latest",
+    "one-class": "latest"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
